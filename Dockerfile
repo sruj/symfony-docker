@@ -7,6 +7,17 @@
 ARG PHP_VERSION=8.1
 ARG CADDY_VERSION=2
 
+# (to nieduane nie widzi node --version) se dodaje node jak tu https://stackoverflow.com/a/67212814/3190476
+FROM ubuntu
+
+# Core dependencies
+RUN apt-get update && apt-get install -y curl sudo
+# Node
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+RUN sudo apt-get install -y nodejs
+RUN echo "NODE Version:" && node --version
+RUN echo "NPM Version:" && npm --version
+
 # Prod image
 FROM php:${PHP_VERSION}-fpm-alpine AS app_php
 
@@ -65,6 +76,12 @@ RUN set -eux; \
 	apk del .build-deps
 
 ###> recipes ###
+###> doctrine/doctrine-bundle ###
+RUN apk add --no-cache --virtual .pgsql-deps postgresql-dev; \
+	docker-php-ext-install -j$(nproc) pdo_pgsql; \
+	apk add --no-cache --virtual .pgsql-rundeps so:libpq.so.5; \
+	apk del .pgsql-deps
+###< doctrine/doctrine-bundle ###
 ###< recipes ###
 
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
