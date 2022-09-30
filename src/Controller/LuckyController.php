@@ -12,6 +12,7 @@ class LuckyController {
             '<html><body>Lucky number: ' . $number . '</body></html>'
         );
 
+//        test
 
     }
 }
